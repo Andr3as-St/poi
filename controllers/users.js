@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const { authSchema } = require("../schemas");
 
 module.exports.renderRegister = (req, res) => {
   res.render("users/register");
@@ -7,6 +8,8 @@ module.exports.renderRegister = (req, res) => {
 module.exports.register = async (req, res) => {
   try {
     const { email, username, password } = req.body;
+    const result = await authSchema.validateAsync(req.body);
+
     const user = new User({ email, username, password });
     const registeredUser = await User.register(user, password);
     req.login(registeredUser, (err) => {
@@ -31,12 +34,8 @@ module.exports.login = (req, res) => {
   res.redirect(redirectUrl);
 };
 
-module.exports.logout = (req, res, next) => {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    req.flash("success", `Goodbye  ${res.locals.currentUser.username}`);
-    res.redirect("/pois");
-  });
+module.exports.logout = (req, res) => {
+  req.logout();
+  req.flash("success", `Goodbye  ${res.locals.currentUser.username}`);
+  res.redirect("/pois");
 };
